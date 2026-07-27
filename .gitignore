@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.env
+venv/
+.venv/
+*.egg-info/
+dist/
+htmlcov/
+.coverage
+
+# C++
+cpp/build/
+*.o
+*.so
+*.a
+
+# DB
+*.db
+*.sqlite
+
+# Images (fixtures tracked, archived frames not)
+src/dashboard/static/frames/
+
+# IDE
+.vscode/
+.idea/
+*.swp

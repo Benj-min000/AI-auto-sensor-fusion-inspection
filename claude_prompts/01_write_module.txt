@@ -1,0 +1,14 @@
+I am building an AI quality inspection system for automotive parts manufacturing.
+Camera: Arducam UC852 (OV9782 color global shutter, USB 2.0)
+Stack: Python 3.10 + OpenCV + FastAPI + SQLAlchemy
+Project structure: [paste folder structure here]
+
+Please write the following module: [MODULE NAME]
+Requirements: [describe what it should do]
+It must:
+- Have a clear docstring at the top
+- Use get_config() from src/utils/config.py for all parameters
+- Use get_logger() from src/utils/logger.py for logging
+- Be fully testable with pytest
+
+After writing the module, also write pytest unit tests for it.

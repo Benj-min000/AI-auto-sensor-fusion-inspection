@@ -1,0 +1,8 @@
+My surface defect detector has:
+- False positive rate: [X]%  (target: < 5%)
+- False negative rate: [Y]%  (target: < 10%)
+- Current config.yaml thresholds: [paste current values]
+- Test fixture results: [paste accuracy table]
+
+Please suggest new threshold values for config.yaml to improve accuracy.
+Explain why each change should help.
