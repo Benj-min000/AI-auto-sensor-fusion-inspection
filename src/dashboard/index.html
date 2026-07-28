@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>AI Quality Platform - Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .container { display: flex; gap: 20px; }
+        .panel { border: 1px solid #ccc; padding: 15px; flex: 1; border-radius: 5px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border: 1px solid #eee; padding: 8px; text-align: left; }
+        .pass { background-color: #e6ffed; }
+        .fail { background-color: #ffeef0; }
+    </style>
+</head>
+<body>
+    <h1>Root Cause Dashboard</h1>
+    
+    <div id="alertPanel" style="display: none; background-color: #dc3545; color: white; padding: 15px; margin-bottom: 20px; border-radius: 5px; font-weight: bold; text-align: center;">
+        🚨 ERP ALERT: HOLD BATCH - Defect rate exceeded threshold!
+    </div>
+    
+    <div class="container">
+        <div class="panel">
+            <h3>Live Inspection Feed</h3>
+            <table id="feedTable">
+                <thead>
+                    <tr>
+                        <th>Time</th>
+                        <th>Result</th>
+                        <th>Confidence</th>
+                        <th>Defects</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    </tbody>
+            </table>
+        </div>
+
+        <div class="panel">
+            <h3>Defect Rate by Shift</h3>
+            <canvas id="shiftChart"></canvas>
+            
+            <h3 style="margin-top: 30px;">Claude Root Cause Analysis</h3>
+            <div id="claudeAnalysis" style="background: #f8f9fa; padding: 10px; border-left: 4px solid #0366d6; margin-bottom: 20px;">
+                Waiting for analysis data...
+            </div>
+            
+            <button onclick="downloadReport()" style="padding: 10px 20px; background-color: #0366d6; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                📄 Download Shift Report
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // 1. Function to load and draw the Chart.js graph
+        async function loadShiftStats() {
+            try {
+                // Call the analytics endpoint you built in Step 11
+                const response = await fetch('/api/stats/shift');
+                const data = await response.json();
+
+                // Extract the labels (shifts) and data (defect rates)
+                const shifts = Object.keys(data);
+                const defectRates = shifts.map(shift => data[shift].defect_rate_percent);
+
+                // Week 7: Trigger UI Alert if defect rate is too high (simulate Pre-ERP alert)
+                const alertPanel = document.getElementById('alertPanel');
+                if (defectRates.some(rate => rate > 15)) {
+                    alertPanel.style.display = 'block';
+                } else {
+                    alertPanel.style.display = 'none';
+                }
+
+                // Draw the chart
+                const ctx = document.getElementById('shiftChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: shifts,
+                        datasets: [{
+                            label: 'Defect Rate (%)',
+                            data: defectRates,
+                            backgroundColor: 'rgba(255, 99, 132, 0.5)',
+                            borderColor: 'rgba(255, 99, 132, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        scales: {
+                            y: { beginAtZero: true, max: 100 }
+                        }
+                    }
+                });
+            } catch (error) {
+                console.error("Error loading stats:", error);
+            }
+        }
+
+        // 2. Function to load the recent inspections for the live feed
+        async function loadLiveFeed() {
+            try {
+                // Call the results endpoint you built in Step 8
+                const response = await fetch('/api/results?limit=5');
+                const results = await response.json();
+                
+                const tbody = document.querySelector('#feedTable tbody');
+                tbody.innerHTML = ''; // Clear current rows
+                
+                // Inject the rows into the HTML table
+                results.forEach(res => {
+                    const tr = document.createElement('tr');
+                    
+                    // Highlight row green for PASS, red for FAIL
+                    tr.className = res.result === 'PASS' ? 'pass' : 'fail';
+                    
+                    tr.innerHTML = `
+                        <td>${res.batch_id || 'N/A'}</td>
+                        <td><strong>${res.result}</strong></td>
+                        <td>${(res.confidence * 100).toFixed(1)}%</td>
+                        <td>${res.defect_types.join(', ') || 'None'}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (error) {
+                console.error("Error loading live feed:", error);
+            }
+        }
+
+        // 4. Function to load the Claude Root Cause Analysis
+        async function loadClaudeAnalysis() {
+            try {
+                const response = await fetch('/api/stats/root-cause');
+                const data = await response.json();
+                
+                const analysisDiv = document.getElementById('claudeAnalysis');
+                analysisDiv.innerText = data.analysis;
+                
+                // Add some basic styling based on the result
+                if (data.analysis.includes('⚠️')) {
+                    analysisDiv.style.borderLeftColor = '#dc3545'; // Red for warning
+                    analysisDiv.style.backgroundColor = '#fff3cd';
+                }
+            } catch (error) {
+                console.error("Error loading Claude analysis:", error);
+            }
+        }
+
+        // New Week 7 Function to handle downloading the report
+        function downloadReport() {
+            window.location.href = '/api/report/shift';
+        }
+
+        // 3. Run these functions when the page loads
+        window.onload = () => {
+            loadShiftStats();
+            loadLiveFeed();
+            loadClaudeAnalysis();
+            
+            // Poll for new live feed data every 5 seconds
+            setInterval(loadLiveFeed, 5000);
+        };
+    </script>
+</body>
+</html>

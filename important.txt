@@ -1,0 +1,11 @@
+in /home/mazi/Desktop/camera/src/api/routes/analytics.py
+when jun writes claude_helper.py change the example for real api call
+36: def get_root_cause_analysis(db: Session = Depends(get_db)):
+
+possibly also change needed in /home/mazi/Desktop/camera/src/dashboard/index.html 
+116: async function loadClaudeAnalysis() {
+but not sure
+
+/home/mazi/Desktop/camera/src/api/routes/report.py also to change
+
+###########################################################################
